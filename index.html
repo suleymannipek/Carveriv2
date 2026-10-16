@@ -470,32 +470,41 @@
 
     <!-- 2. SEKME: YAKIT -->
     <div id="tabFuel" class="space-y-3 hidden">
-      <div id="fuelRangeBanner" class="custom-card p-3.5 shadow border-blue-900/40 space-y-2.5">
-        <div class="flex justify-between items-center text-xs">
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl text-cyan-500">🎯</span>
-            <div>
-              <span class="text-[9px] uppercase font-black text-cyan-600 dark:text-cyan-400 tracking-wider">Tahmini Kalan Menzil (Son Göstergeye Göre)</span>
-              <div id="fuelRangeText" class="font-black text-xs mt-0.5">Hesaplanıyor...</div>
+     <!-- KOKPİT MENZİL & DEPO KARTI -->
+      <div id="fuelRangeBanner" class="custom-card p-4 shadow-lg border-cyan-500/20 relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-900/40">
+        <div class="flex justify-between items-end mb-2.5">
+          <div>
+            <span class="text-[9px] font-black uppercase tracking-wider text-cyan-400 block">Kalan Tahmini Menzil</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="fuelRangeMainKm" class="text-3xl font-black text-cyan-400 tracking-tight">--</span>
+              <span class="text-xs font-bold text-cyan-500">KM</span>
+            </div>
+            <span id="fuelRangeText" class="text-[9px] custom-muted block font-medium mt-0.5">Tüketim bekleniyor</span>
+          </div>
+          
+          <div class="text-right">
+            <span class="text-[9px] font-black uppercase tracking-wider custom-muted block">Depodaki Yakıt</span>
+            <div class="flex items-baseline justify-end gap-1 mt-0.5">
+              <span id="fuelBarsPercent" class="text-xl font-black text-emerald-400">--%</span>
+              <span id="fuelBarsLiters" class="text-[10px] custom-muted font-semibold">(-- L)</span>
             </div>
           </div>
-          <span id="fuelRangeRemaining" class="text-[10px] font-extrabold px-2.5 py-1 rounded-lg theme-badge-blue">--</span>
         </div>
 
-        <div class="pt-2 border-t border-slate-700/40 grid grid-cols-2 gap-2 text-[10px]">
-          <div class="p-2 rounded-xl theme-sub-box">
-            <span class="custom-muted block text-[9px] font-bold">Depodaki Kalan Yakıt</span>
-            <span id="fuelBarsDisplay" class="font-black text-emerald-600 dark:text-emerald-400 block mt-0.5 truncate">--</span>
-          </div>
-          <div class="p-2 rounded-xl theme-sub-box text-right">
-            <span class="custom-muted block text-[9px] font-bold">Son Tam Depodan Beri</span>
-            <span id="lastFuelDiffInfo" class="font-black text-cyan-600 dark:text-cyan-400 block mt-0.5 truncate">--</span>
-          </div>
+        <!-- İnce Segmentli / Kademeli Yakıt Çubuğu -->
+        <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-slate-700/50 mb-3">
+          <div id="fuelProgressBar" class="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
         </div>
-        <!-- TAHMİNİ FULLEME MALİYETİ KUTUSU -->
-        <div class="pt-2 border-t border-slate-700/40 flex justify-between items-center text-[10px]">
-          <span class="custom-muted font-bold">Depoyu Fulleme Tahmini:</span>
-          <span id="fullTankCostEstimate" class="font-black text-amber-500">Hesaplanıyor...</span>
+
+        <!-- Alt Bilgi Şeridi -->
+        <div class="pt-2.5 border-t border-slate-700/40 flex justify-between items-center text-[10px]">
+          <div class="flex items-center gap-1.5">
+            <span class="text-amber-500 font-bold">⛽ Depo Fulleme:</span>
+            <span id="fullTankCostEstimate" class="font-extrabold text-white">Hesaplanıyor...</span>
+          </div>
+          <div class="custom-muted font-semibold">
+            Son Full: <span id="lastFuelDiffInfo" class="text-cyan-400 font-bold">--</span>
+          </div>
         </div>
       </div>
 
@@ -516,14 +525,15 @@
 
       <div class="relative">
         <input type="text" id="fuelSearchInput" oninput="renderFuelCards(getFilteredCombinedLogs())" placeholder="İstasyon, şube, kart veya tarih ara..." class="w-full text-xs p-2.5 rounded-xl custom-input border outline-none pl-8 pr-8 font-medium shadow-inner" />
-		<span class="absolute left-2.5 top-3 text-xs custom-muted">🔍</span>
+        <span class="absolute left-2.5 top-3 text-xs custom-muted">🔍</span>
         <button onclick="clearFuelSearch()" id="fuelClearBtn" class="absolute right-2.5 top-2.5 text-xs custom-muted hover:text-white hidden font-bold">✕</button>
       </div>
 
-      <div class="flex gap-2 text-[10px] font-black">
-        <button onclick="setFuelViewFilter('all')" id="fuelViewFilter_all" class="flex-1 py-1.5 rounded-xl bg-blue-600 text-white shadow transition-all">Tümü</button>
-        <button onclick="setFuelViewFilter('fuel')" id="fuelViewFilter_fuel" class="flex-1 py-1.5 rounded-xl custom-card border custom-muted hover:text-white transition-all">⛽ Sadece Yakıtlar</button>
-        <button onclick="setFuelViewFilter('odo')" id="fuelViewFilter_odo" class="flex-1 py-1.5 rounded-xl custom-card border custom-muted hover:text-white transition-all">📍 Sadece KM</button>
+      <!-- KAPSÜL TİPİ SEGMENTED FİLTRE ÇUBUĞU -->
+      <div class="p-1 rounded-2xl bg-slate-900/70 border border-slate-800 flex gap-1 text-[10px] font-bold">
+        <button onclick="setFuelViewFilter('all')" id="fuelViewFilter_all" class="flex-1 py-1.5 rounded-xl bg-blue-600 text-white shadow font-black transition-all">Tümü</button>
+        <button onclick="setFuelViewFilter('fuel')" id="fuelViewFilter_fuel" class="flex-1 py-1.5 rounded-xl custom-muted hover:text-white transition-all">⛽ Sadece Yakıtlar</button>
+        <button onclick="setFuelViewFilter('odo')" id="fuelViewFilter_odo" class="flex-1 py-1.5 rounded-xl custom-muted hover:text-white transition-all">📍 Sadece KM</button>
       </div>
 
       <div id="fuelCardsList" class="space-y-2.5"></div>
@@ -750,14 +760,31 @@
             <span class="text-lg text-emerald-500">✨</span>
             <div>
               <h4 class="text-xs font-black">Güncellemeler & Sürüm Notları</h4>
-              <p class="text-[10px] custom-muted font-semibold">v2.2 Yenilikleri ve Detaylar</p>
+              <p class="text-[10px] custom-muted font-semibold">v2.3 Yenilikleri ve Detaylar</p>
             </div>
           </div>
           <span id="updatesAccordionIcon" class="text-[10px] custom-muted font-bold px-2.5 py-1 rounded-lg custom-card border">▼ Göster</span>
         </button>
 
         <div id="updatesAccordionBody" class="hidden p-3.5 pt-0 space-y-2.5 border-t border-slate-700/40 text-[11px]">
-          <!-- YENİ EKLENEN v2.2 SÜRÜM NOTLARI -->
+         <!-- SÜRÜM 2.3 GÜNCELLEME NOTLARI -->
+          <div class="p-2.5 rounded-xl theme-sub-box space-y-1.5 mt-2 border border-cyan-500/30">
+            <div class="flex justify-between items-center">
+              <span class="font-black text-cyan-500 text-xs">Sürüm 2.3 (En Son)</span>
+              <span class="text-[9px] font-bold theme-badge-cyan px-2 py-0.5 rounded">Ekim 2026</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1 text-[10px] custom-muted font-medium">
+              <li><b>Dijital Kokpit Menzil & Depo Göstergesi:</b> Üst kısımdaki dağınık kutular kaldırılarak büyük dijital menzil ekranı, renkli kademeli yakıt dolum çubuğu (progress bar) ve anlık fulleme maliyet analizi tek bir şık panelde birleştirildi.</li>
+              <li><b>İstasyon Bazlı Canlı Akaryakıt Fiyatları:</b> Cloudflare Worker botu güncellenerek Eskişehir/Tepebaşı genelindeki tüm akaryakıt istasyonlarının (Opet, PO, Shell, BP vb.) anlık fiyatları entegre edildi. Ana ekranda Benzin/Dizel için Opet, LPG için Petrol Ofisi referans alındı.</li>
+              <li><b>Esnek & Canlı Pompa Fiyatı Desteği:</b> Yakıt ekleme formuna serbest litre fiyatı kutusu eklendi; istasyon seçildiğinde canlı pompa fiyatını otomatik getirme ve elle indirimli/özel birim fiyat yazabilme imkanı sağlandı. Litre veya tutar girildiğinde otomatik karşılıklı hesaplama aktif edildi.</li>
+              <li><b>Kümülatif Tüketimden Net Günlük Maliyet Ayrımı:</b> Yol bilgisayarına girilen kümülatif ortalamadan iki sayaç girişi arasındaki net harcanan litre ve TL bedeli kuruşu kuruşuna doğru hesaplanarak KM kartlarına yansıtıldı. Kalan menzil ve depo ibresi güncel kümülatif ortalamaya bağlandı.</li>
+              <li><b>Kapsül Segmented Filtre Çubuğu:</b> Yakıt ve KM filtre butonları yerini modern mobil kapsül tasarımına bıraktı; filtrelemeler tıklandığı an gecikmesiz çalışacak şekilde optimize edildi.</li>
+              <li><b>Banka Ekstresi Düzeninde Kartlar & Temizlik:</b> Yakıt ve KM kartları gereksiz rozet kalabalığından arındırılarak sol ikon, ana tutar ve alt detay hiyerarşisine kavuşturuldu. Mükerrer kilometre başlıkları ve eski "Manuel KM" ibareleri tamamen temizlendi.</li>
+              <li><b>KM Girişlerine "Düzenle" Seçeneği:</b> Sayaç (ODO) kartlarına düzenleme fonksiyonu getirilerek geçmiş kayıtların kolayca güncellenebilmesi sağlandı.</li>
+              <li><b>Kayıt Sayacı Düzeltmesi:</b> Ana ekrandaki kayıt sayısına bağımsız sayaç (ODO) kayıtları da dahil edilerek döneme ait gerçek toplam kayıt adedi güvenceye alındı.</li>
+            </ul>
+          </div>
+		 <!-- YENİ EKLENEN v2.2 SÜRÜM NOTLARI -->
           <div class="p-2.5 rounded-xl theme-sub-box space-y-1.5 mt-2 border border-emerald-500/30">
             <div class="flex justify-between items-center">
               <span class="font-black text-emerald-500 text-xs">Sürüm 2.2 (En Son)</span>
@@ -2052,13 +2079,18 @@
     }
 
     function updateRangeEstimate(avgConsFromHistory) {
-      const banner = document.getElementById("fuelRangeBanner"); const tankCapacity = window.carProfile.fuelTank || 50; const liveKm = getLatestVehicleKm();
+      const banner = document.getElementById("fuelRangeBanner");
+      const tankCapacity = window.carProfile.fuelTank || 50;
+      const liveKm = getLatestVehicleKm();
       const sFuels = window.fuels.slice().sort((a,b) => new Date(a.date) - new Date(b.date) || a.km - b.km);
       const lastFullFuel = sFuels.slice().reverse().find(f => (f.isFull !== undefined ? f.isFull : f.fillLevel === 'full'));
+      
       const diffInfoEl = document.getElementById("lastFuelDiffInfo");
       if (lastFullFuel && liveKm >= lastFullFuel.km) {
         diffInfoEl.innerText = `+${(liveKm - lastFullFuel.km).toLocaleString('tr-TR')} km (${Math.max(0, Math.round((new Date() - new Date(lastFullFuel.date)) / 86400000))} gün)`;
-      } else { diffInfoEl.innerText = `--`; }
+      } else {
+        diffInfoEl.innerText = `--`;
+      }
 
       const sortedOdosWithDash = window.odoLogs.slice().filter(o => o.dashboardL100 > 0).sort((a,b) => new Date(a.date) - new Date(b.date));
       let effectiveCons = Number(sortedOdosWithDash.length ? sortedOdosWithDash[sortedOdosWithDash.length - 1].dashboardL100 : (avgConsFromHistory || 0));
@@ -2089,32 +2121,44 @@
         remainingLiters = Math.max(0, Math.min(tankCapacity, curTank));
       }
 
-      if (remainingLiters !== null) document.getElementById("fuelBarsDisplay").innerText = `%${Math.min(100, Math.round((remainingLiters / tankCapacity) * 100))} (~${remainingLiters.toFixed(1)} L)`;
-      else document.getElementById("fuelBarsDisplay").innerText = `--`;
+      const percentVal = remainingLiters !== null ? Math.min(100, Math.max(0, Math.round((remainingLiters / tankCapacity) * 100))) : 0;
+      
+      // Yeni Kokpit Öğelerini Güncelle
+      const pBar = document.getElementById("fuelProgressBar");
+      const pPercent = document.getElementById("fuelBarsPercent");
+      const pLiters = document.getElementById("fuelBarsLiters");
+      const mainKmEl = document.getElementById("fuelRangeMainKm");
+      const rangeTextEl = document.getElementById("fuelRangeText");
+
+      if (pBar) pBar.style.width = `${percentVal}%`;
+      if (pPercent) pPercent.innerText = remainingLiters !== null ? `%${percentVal}` : `--%`;
+      if (pLiters) pLiters.innerText = remainingLiters !== null ? `(~${remainingLiters.toFixed(1)} L)` : `(-- L)`;
 
       if (effectiveCons > 0 && remainingLiters !== null) {
-        document.getElementById("fuelRangeText").innerText = `Tam Depo ile: ~${Math.round((tankCapacity / effectiveCons) * 100).toLocaleString('tr-TR')} km (${effectiveCons.toFixed(2)} L/100km)`;
-        document.getElementById("fuelRangeRemaining").innerText = `Kalan Tahmin: ~${Math.round((remainingLiters / effectiveCons) * 100).toLocaleString('tr-TR')} km`;
-        banner.classList.remove("hidden"); banner.style.display="block";
+        const estRange = Math.round((remainingLiters / effectiveCons) * 100);
+        if (mainKmEl) mainKmEl.innerText = estRange.toLocaleString('tr-TR');
+        if (rangeTextEl) rangeTextEl.innerText = `Tam Depo ile: ~${Math.round((tankCapacity / effectiveCons) * 100).toLocaleString('tr-TR')} km (${effectiveCons.toFixed(2)} L/100km)`;
+        banner.classList.remove("hidden");
+        banner.style.display = "block";
       } else {
-        document.getElementById("fuelRangeText").innerText = `Depo Hacmi: ${tankCapacity} L`;
-        document.getElementById("fuelRangeRemaining").innerText = `Tüketim bekleniyor`;
+        if (mainKmEl) mainKmEl.innerText = "--";
+        if (rangeTextEl) rangeTextEl.innerText = `Depo Hacmi: ${tankCapacity} L`;
       }
-      // Fulleme Maliyeti Hesabı
-    const costEstEl = document.getElementById("fullTankCostEstimate");
-    if (costEstEl) {
-      if (remainingLiters !== null && window.liveFuelData && window.liveFuelData.fiyatlar) {
-        const missingLiters = Math.max(0, tankCapacity - remainingLiters);
-        const fType = window.carProfile.fuelType || "benzin";
-        const rawPrice = window.liveFuelData.fiyatlar[fType] || "0";
-        const unitPrice = parseFloat(rawPrice.replace(",", ".")) || 0;
-        const totalCost = missingLiters * unitPrice;
 
-        costEstEl.innerHTML = `~₺${Math.round(totalCost).toLocaleString('tr-TR')} <span class="custom-muted font-normal">(Eksik: ~${missingLiters.toFixed(1)} L)</span>`;
-      } else {
-        costEstEl.innerText = "--";
+      // Fulleme Maliyeti
+      const costEstEl = document.getElementById("fullTankCostEstimate");
+      if (costEstEl) {
+        if (remainingLiters !== null && window.liveFuelData && window.liveFuelData.fiyatlar) {
+          const missingLiters = Math.max(0, tankCapacity - remainingLiters);
+          const fType = window.carProfile.fuelType || "benzin";
+          const rawPrice = window.liveFuelData.fiyatlar[fType] || "0";
+          const unitPrice = parseFloat(String(rawPrice).replace(",", ".")) || 0;
+          const totalCost = missingLiters * unitPrice;
+          costEstEl.innerHTML = `~₺${Math.round(totalCost).toLocaleString('tr-TR')} <span class="custom-muted font-normal">(Eksik: ~${missingLiters.toFixed(1)} L)</span>`;
+        } else {
+          costEstEl.innerText = "--";
+        }
       }
-    }
     }
 
     function updateActiveRouteBanner() {
@@ -2590,13 +2634,18 @@
 
     let activeFuelViewFilter = "all";
     function setFuelViewFilter(mode) {
-		activeFuelViewFilter = mode;
-		["all", "fuel", "odo"].forEach(m => {
-		const btn = document.getElementById("fuelViewFilter_" + m);
-		if (btn) btn.className = m === mode ? "flex-1 py-1.5 rounded-xl bg-blue-600 text-white shadow font-black transition-all" : "flex-1 py-1.5 rounded-xl custom-card border custom-muted hover:text-white font-bold transition-all"
-		});
-		renderFuelCards(getFilteredCombinedLogs());
-	}	
+      activeFuelViewFilter = mode;
+      ["all", "fuel", "odo"].forEach(m => {
+        const btn = document.getElementById("fuelViewFilter_" + m);
+        if (btn) {
+          btn.className = (m === mode)
+            ? "flex-1 py-1.5 rounded-xl bg-blue-600 text-white shadow font-black transition-all"
+            : "flex-1 py-1.5 rounded-xl custom-muted hover:text-white font-bold transition-all";
+        }
+      });
+      renderFuelCards(getFilteredCombinedLogs());
+    }
+	
 	let expandedCards = new Set();	
 	function toggleCardExpansion(id) { if (expandedCards.has(id)) expandedCards.delete(id); else expandedCards.add(id); renderFuelCards(getFilteredCombinedLogs()); }
 		
@@ -2794,7 +2843,7 @@
 
           grp.items.forEach(item => {
             const card = document.createElement("div");
-            card.className = "custom-card p-3.5 shadow text-xs transition-all";
+            card.className = "custom-card p-3.5 shadow-sm hover:border-slate-600 transition-all text-xs";
             const dateFormatted = formatDateTimeLabel(item.date);
 
             const stepKm = stepDiffMap[item.id];
@@ -2802,30 +2851,40 @@
 
             if (item.isOdoOnly) {
               const cMeta = odoCostMap[item.id];
-              const fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
+              const fuelTag = (item.fuelPercent !== null && item.fuelPercent !== undefined) ? `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]">⛽ %${item.fuelPercent}</span>` : "";
               const dashTag = item.dashboardL100 ? `<span class="theme-badge-amber font-bold px-1.5 py-0.5 rounded text-[9px]">Ort: ${item.dashboardL100} L</span>` : "";
-              const costDisplay = (cMeta && cMeta.cost) ? `<div class="font-black text-xs text-amber-500">~₺${cMeta.cost.toLocaleString('tr-TR')} <span class="text-[9px] custom-muted font-normal">(${cMeta.liters} L)</span></div>` : '';
+              const costDisplay = (cMeta && cMeta.cost) 
+                ? `<div class="text-xs font-black text-amber-500">~₺${cMeta.cost.toLocaleString('tr-TR')}</div><span class="text-[9px] custom-muted font-semibold block">${cMeta.liters} L harcandı</span>` 
+                : '';
 
               card.innerHTML = `
                 <div>
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span class="font-black text-xs text-indigo-400">📍 ${item.km.toLocaleString('tr-TR')} KM</span>
-                        ${kmBadge}
-                        ${dashTag}
-                        ${fuelTag}
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-2.5 min-w-0">
+                      <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                        📍
                       </div>
-                      <div class="text-[10px] custom-muted font-semibold">
-                        ${dateFormatted} ${(item.note && item.note !== "Manuel KM") ? '• <span class="text-slate-300 font-bold">' + item.note + '</span>' : ''}
-					  </div>
+                      <div class="min-w-0">
+                        <div class="font-black text-xs text-indigo-400">${item.km.toLocaleString('tr-TR')} KM</div>
+                        <div class="text-[10px] custom-muted font-medium mt-0.5 truncate">
+                          ${dateFormatted} ${(item.note && item.note !== "Manuel KM") ? '• <span class="text-slate-300 font-bold">' + item.note + '</span>' : ''}
+                        </div>
+                      </div>
                     </div>
-                    <div class="text-right flex-shrink-0">
+                    <div class="text-right shrink-0">
                       ${costDisplay}
-                      <div class="flex items-center justify-end gap-2.5 mt-1.5">
-                        <button onclick="openOdoModal('${item.id}')" class="text-[10px] text-blue-500 hover:underline font-bold">Düzenle</button>
-                        <button onclick="deleteOdoLog('${item.id}')" class="text-[10px] text-rose-500 hover:underline font-bold">Sil</button>
-                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      ${kmBadge}
+                      ${dashTag}
+                      ${fuelTag}
+                    </div>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                      <button onclick="openOdoModal('${item.id}')" class="text-blue-400 font-bold hover:underline">Düzenle</button>
+                      <button onclick="deleteOdoLog('${item.id}')" class="text-rose-500 font-bold hover:underline">Sil</button>
                     </div>
                   </div>
                 </div>
@@ -2836,33 +2895,48 @@
               const unitPrice = (item.total / item.liters).toFixed(2);
               const isFull = item.isFull !== undefined ? item.isFull : (item.fillLevel === 'full');
               const fillBadge = isFull ? `<span class="theme-badge-green font-black px-1.5 py-0.5 rounded text-[9px]">Tam Depo</span>` : `<span class="theme-badge-amber font-black px-1.5 py-0.5 rounded text-[9px]">Ara Dolum</span>`;
-              const compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px] ml-1">Gerçek: ${item.consumption} L</span>` : "";
+              const compBadge = (item.consumption && isFull) ? `<span class="theme-badge-cyan font-black px-1.5 py-0.5 rounded text-[9px]">Gerçek: ${item.consumption} L</span>` : "";
+              
               const diffVal = (item.consumption && item.dashL100) ? (parseFloat(item.consumption) - parseFloat(item.dashL100)) : null;
-			  const diffDisplay = (diffVal !== null && isFull) ? `<div class="text-[9px] text-amber-500 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L (Fark: ${diffVal >= 0 ? '+' : ''}${diffVal.toFixed(2)} L)</div>` : "";
-			  
+              const diffDisplay = (diffVal !== null && isFull) ? `<div class="text-[9px] text-amber-500 font-bold mt-1">📊 Pompa: ${item.consumption} L • Gösterge: ${item.dashL100} L (Fark: ${diffVal >= 0 ? '+' : ''}${diffVal.toFixed(2)} L)</div>` : "";
+
               card.innerHTML = `
                 <div onclick="toggleCardExpansion('${item.id}')" class="cursor-pointer">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span class="font-black text-xs text-amber-500">⛽ ${item.km.toLocaleString('tr-TR')} KM</span>
-                        ${kmBadge}
-                        <span class="theme-badge-blue font-bold px-1.5 py-0.5 rounded text-[9px]">${item.station}</span>
-                        <span class="theme-badge-purple font-bold px-1.5 py-0.5 rounded text-[9px]">${item.paymentMethod || 'Nakit'}</span>
-                        ${fillBadge}
-                        ${compBadge}
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-2.5 min-w-0">
+                      <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-sm shrink-0 mt-0.5">
+                        ⛽
                       </div>
-                      <div class="custom-muted text-[10px] font-semibold">
-                        ${dateFormatted} • ${item.liters} L • ${unitPrice} ₺/L
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <span class="font-black text-xs text-white truncate">${item.station}</span>
+                          ${fillBadge}
+                        </div>
+                        <div class="text-[10px] custom-muted font-medium mt-0.5">
+                          ${dateFormatted} • ${item.km.toLocaleString('tr-TR')} KM • ${item.liters} L • ${unitPrice} ₺/L
+                        </div>
+                        ${diffDisplay}
                       </div>
-                      ${diffDisplay}
                     </div>
-                    <div class="text-right flex-shrink-0">
-                      <span class="font-black text-xs">₺${parseFloat(item.total).toLocaleString('tr-TR')}</span>
-                      <div class="text-[9px] custom-muted mt-1 font-bold">${isExp ? '▲ Kapat' : '▼ Detay'}</div>
+
+                    <div class="text-right shrink-0">
+                      <div class="text-sm font-black text-white tracking-tight">₺${parseFloat(item.total).toLocaleString('tr-TR')}</div>
+                      <span class="text-[9px] custom-muted font-semibold block mt-0.5">${item.paymentMethod || 'Nakit'}</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      ${kmBadge}
+                      ${compBadge}
+                    </div>
+                    <div class="text-[10px] custom-muted hover:text-white font-bold flex items-center gap-0.5">
+                      <span>${isExp ? 'Kapat' : 'Detay'}</span>
+                      <span class="text-[8px]">${isExp ? '▲' : '▼'}</span>
                     </div>
                   </div>
                 </div>
+
                 ${isExp ? `
                   <div class="pt-2.5 mt-2.5 border-t border-slate-700/40 space-y-2">
                     <div class="grid grid-cols-2 gap-2 text-[10px] p-2.5 theme-sub-box rounded-xl">
