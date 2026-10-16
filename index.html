@@ -900,24 +900,27 @@
           <div id="fuelBranchWrapper"><label class="custom-muted text-[10px] font-bold">Şube</label><input type="text" id="fBranch" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-medium" /></div>
         </div>
         
-		<div class="p-2.5 rounded-xl theme-sub-box border border-amber-500/30 flex justify-between items-center text-xs">
-          <div>
-            <span class="text-[9px] custom-muted block font-bold">İstasyon Pompa Fiyatı:</span>
-            <span id="fuelModalLiveUnitPriceDisplay" class="font-black text-amber-500 text-xs">-- ₺/L</span>
+		<div class="p-2.5 rounded-xl theme-sub-box border border-amber-500/30 flex justify-between items-center gap-2">
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[10px] font-bold text-amber-500">Litre Fiyatı (₺/L)</label>
+              <span id="fuelModalLiveUnitPriceDisplay" class="text-[9px] custom-muted font-bold">Canlı: -- ₺</span>
+            </div>
+            <input type="number" step="0.01" id="fUnitPrice" placeholder="0.00" oninput="onUnitPriceInputLive()" class="w-full custom-input border p-2 rounded-xl outline-none font-black text-amber-500 text-xs shadow-inner" />
           </div>
-          <button type="button" onclick="applyLiveFuelPriceToForm()" id="btnApplyLivePrice" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] shadow transition-all flex items-center gap-1">
-            <span>⚡</span> Güncel Fiyatı Uygula
+          <button type="button" onclick="applyLiveFuelPriceToForm()" id="btnApplyLivePrice" title="İstasyon canlı fiyatını kutuya aktar" class="h-9 px-2.5 mt-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] shadow transition-all flex items-center gap-1 shrink-0">
+            <span>⚡</span> Canlı Fiyat
           </button>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="custom-muted text-[10px] font-bold">Alınan Litre</label>
-            <input type="number" step="0.01" id="fLiters" required oninput="calculateTotalFromLitersLive()" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-amber-600 dark:text-amber-400" />
+            <input type="number" step="0.01" id="fLiters" required oninput="calculateTotalFromLitersLive()" placeholder="0.00" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-cyan-500" />
           </div>
           <div>
             <label class="custom-muted text-[10px] font-bold">Toplam Tutar (₺)</label>
-            <input type="number" step="0.01" id="fTotal" required oninput="calculateLitersFromTotalLive()" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-emerald-600 dark:text-emerald-400" />
+            <input type="number" step="0.01" id="fTotal" required oninput="calculateLitersFromTotalLive()" placeholder="0.00" class="w-full mt-1 custom-input border p-2.5 rounded-xl outline-none font-black text-emerald-500" />
           </div>
         </div>
 		
@@ -2379,92 +2382,98 @@
 	// İstasyon ve yakıt türüne göre canlı birim fiyatı tespit eder
     function getSelectedStationUnitPrice() {
       if (!window.liveFuelData) return 0;
-
       const stationSelect = document.getElementById("fStation");
       const station = stationSelect ? stationSelect.value : "Opet";
 
-      // Araç yakıt türü (Benzin/Motorin veya LPG)
       let targetFuelKey = window.carProfile.fuelType || "benzin";
       if (window.carProfile.hasLpg) {
         const typeSelect = document.getElementById("fFuelType");
-        if (typeSelect && typeSelect.value === "LPG") {
-          targetFuelKey = "lpg";
-        }
+        if (typeSelect && typeSelect.value === "LPG") targetFuelKey = "lpg";
       }
 
       let priceStr = null;
-
-      // 1. İstasyonlar tablosundan seçilen istasyonun fiyatını ara
       if (window.liveFuelData.istasyonlar && window.liveFuelData.istasyonlar[station]) {
         const stData = window.liveFuelData.istasyonlar[station];
         if (stData[targetFuelKey] && stData[targetFuelKey] !== "-") {
           priceStr = stData[targetFuelKey];
         }
       }
-
-      // 2. İstasyon bulunamadıysa veya fiyatı '-' ise ana referans fiyatlara bak
       if (!priceStr && window.liveFuelData.fiyatlar) {
         priceStr = window.liveFuelData.fiyatlar[targetFuelKey];
       }
 
-      if (priceStr && priceStr !== "-") {
-        return parseFloat(String(priceStr).replace(",", ".")) || 0;
-      }
-      return 0;
+      return (priceStr && priceStr !== "-") ? (parseFloat(String(priceStr).replace(",", ".")) || 0) : 0;
     }
 
     let activeLiveUnitPrice = 0;
     function updateLivePriceInFuelModal() {
       activeLiveUnitPrice = getSelectedStationUnitPrice();
       const displayEl = document.getElementById("fuelModalLiveUnitPriceDisplay");
-      const btn = document.getElementById("btnApplyLivePrice");
+      const unitInput = document.getElementById("fUnitPrice");
 
       if (activeLiveUnitPrice > 0) {
-        if (displayEl) displayEl.innerText = `${activeLiveUnitPrice.toFixed(2)} ₺/L`;
-        if (btn) btn.classList.remove("hidden");
+        if (displayEl) displayEl.innerText = `Canlı: ${activeLiveUnitPrice.toFixed(2)} ₺`;
+        // Eğer kutu henüz boşsa canlı fiyatı otomatik doldur
+        if (unitInput && (!unitInput.value || parseFloat(unitInput.value) <= 0)) {
+          unitInput.value = activeLiveUnitPrice.toFixed(2);
+        }
       } else {
-        if (displayEl) displayEl.innerText = "-- ₺/L";
-        if (btn) btn.classList.add("hidden");
+        if (displayEl) displayEl.innerText = "Canlı: -- ₺";
       }
     }
 
+    // "⚡ Canlı Fiyat" butonuna basıldığında istasyon fiyatını zorla kutuya yapıştırır
     function applyLiveFuelPriceToForm() {
-      if (activeLiveUnitPrice <= 0) return alert("Güncel istasyon fiyatı bulunamadı.");
+      if (activeLiveUnitPrice <= 0) return alert("Seçilen istasyon için güncel fiyat bulunamadı.");
+      const unitInput = document.getElementById("fUnitPrice");
+      unitInput.value = activeLiveUnitPrice.toFixed(2);
+      onUnitPriceInputLive();
+    }
 
-      const litEl = document.getElementById("fLiters");
-      const totEl = document.getElementById("fTotal");
+    // Kullanıcı Litre Fiyatını elle değiştirdiğinde çalışır
+    function onUnitPriceInputLive() {
+      const uPrice = parseFloat(document.getElementById("fUnitPrice").value) || 0;
+      const litVal = parseFloat(document.getElementById("fLiters").value) || 0;
+      const totVal = parseFloat(document.getElementById("fTotal").value) || 0;
 
-      const litVal = parseFloat(litEl.value) || 0;
-      const totVal = parseFloat(totEl.value) || 0;
-
-      if (litVal > 0) {
-        totEl.value = (litVal * activeLiveUnitPrice).toFixed(2);
-      } else if (totVal > 0) {
-        litEl.value = (totVal / activeLiveUnitPrice).toFixed(2);
-      } else {
-        alert(`Birim fiyat (${activeLiveUnitPrice.toFixed(2)} ₺/L) hafızaya alındı. Litre veya Tutar girdiğinizde diğeri otomatik hesaplanacak.`);
+      if (uPrice > 0) {
+        if (litVal > 0) {
+          document.getElementById("fTotal").value = (litVal * uPrice).toFixed(2);
+        } else if (totVal > 0) {
+          document.getElementById("fLiters").value = (totVal / uPrice).toFixed(2);
+        }
       }
     }
 
+    // Alınan Litre yazıldığında
     function calculateTotalFromLitersLive() {
-      if (activeLiveUnitPrice <= 0) return;
-      const litVal = parseFloat(document.getElementById("fLiters").value);
-      if (!isNaN(litVal) && litVal > 0) {
-        document.getElementById("fTotal").value = (litVal * activeLiveUnitPrice).toFixed(2);
+      const uPrice = parseFloat(document.getElementById("fUnitPrice").value) || 0;
+      const litVal = parseFloat(document.getElementById("fLiters").value) || 0;
+      const totVal = parseFloat(document.getElementById("fTotal").value) || 0;
+
+      if (uPrice > 0 && litVal > 0) {
+        document.getElementById("fTotal").value = (litVal * uPrice).toFixed(2);
+      } else if (litVal > 0 && totVal > 0) {
+        document.getElementById("fUnitPrice").value = (totVal / litVal).toFixed(2);
       }
     }
 
+    // Toplam Tutar yazıldığında
     function calculateLitersFromTotalLive() {
-      if (activeLiveUnitPrice <= 0) return;
-      const totVal = parseFloat(document.getElementById("fTotal").value);
-      if (!isNaN(totVal) && totVal > 0) {
-        document.getElementById("fLiters").value = (totVal / activeLiveUnitPrice).toFixed(2);
+      const uPrice = parseFloat(document.getElementById("fUnitPrice").value) || 0;
+      const totVal = parseFloat(document.getElementById("fTotal").value) || 0;
+      const litVal = parseFloat(document.getElementById("fLiters").value) || 0;
+
+      if (uPrice > 0 && totVal > 0) {
+        document.getElementById("fLiters").value = (totVal / uPrice).toFixed(2);
+      } else if (totVal > 0 && litVal > 0) {
+        document.getElementById("fUnitPrice").value = (totVal / litVal).toFixed(2);
       }
     }
 	
 	
     function openFuelModal() {
-      document.getElementById("fuelForm").reset(); document.getElementById("fId").value = ""; document.getElementById("fDocId").value = ""; document.getElementById("fDocPreviewBox").classList.add("hidden");
+      document.getElementById("fuelForm").reset();document.getElementById("fUnitPrice").value = ""; document.getElementById("fId").value = ""; document.getElementById("fDocId").value = ""; document.getElementById("fDocPreviewBox").classList.add("hidden");
       document.getElementById("fDate").value = getNowLocalISO(); const lk = getLatestVehicleKm(); if (lk > 0) document.getElementById("fKm").value = lk;
       document.getElementById("fuelModalTitle").innerText = "⛽ Yeni Yakıt Alımı"; document.getElementById("fuelAnomalyWarning").classList.add("hidden");
       document.getElementById("fuelIntervalBadge").classList.add("hidden"); document.getElementById("fIsFullCheckbox").checked = true;
@@ -2481,33 +2490,35 @@
       openModalDirectly("fuelModal");
 	}
 
-    async function editFuel(id) {
-      const f = window.fuels.find(x => String(x.id) === String(id)); if (!f) return;
-      populatePaymentSelects();
-      document.getElementById("fId").value = f.id; document.getElementById("fDate").value = f.date; document.getElementById("fKm").value = f.km; document.getElementById("fStation").value = f.station;
-      document.getElementById("fFuelType").value = f.fuelType || "Benzin/Dizel"; document.getElementById("fBranch").value = f.branch || ""; document.getElementById("fLiters").value = f.liters;
-      document.getElementById("fTotal").value = f.total; document.getElementById("fDashboardL100").value = f.dashL100 || ""; document.getElementById("fPaymentMethod").value = f.paymentMethod || window.customPaymentMethods[0];
-      document.getElementById("fIsFullCheckbox").checked = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
-      document.getElementById("fuelStartRoute").checked = false; document.getElementById("fuelRouteNameBox").classList.add("hidden");
-      document.getElementById("fDocId").value = f.docId || "";
-      if (f.docId) {
-        const uri = await getDocFromDB(f.docId);
-        if (uri && !uri.startsWith("data:application/pdf")) { document.getElementById("fDocThumbnail").src = uri; document.getElementById("fDocThumbnail").classList.remove("hidden"); }
-        document.getElementById("fDocPreviewBox").classList.remove("hidden"); document.getElementById("fDocPreviewBox").style.display="flex";
-      } else { document.getElementById("fDocPreviewBox").classList.add("hidden"); }
-      
-      document.getElementById("fuelModalTitle").innerText = "Yakıtı Düzenle"; 
-      document.getElementById("fuelAnomalyWarning").classList.add("hidden"); 
-      checkFuelIntervalLive(f.km); 
-      updateLpgVisibilityInApp();
+		async function editFuel(id) {
+			const f = window.fuels.find(x => String(x.id) === String(id)); if (!f) return;
+			populatePaymentSelects();
+			document.getElementById("fId").value = f.id; document.getElementById("fDate").value = f.date; document.getElementById("fKm").value = f.km; document.getElementById("fStation").value = f.station;
+			document.getElementById("fFuelType").value = f.fuelType || "Benzin/Dizel"; document.getElementById("fBranch").value = f.branch || ""; document.getElementById("fLiters").value = f.liters;
+			document.getElementById("fTotal").value = f.total; document.getElementById("fDashboardL100").value = f.dashL100 || ""; document.getElementById("fPaymentMethod").value = f.paymentMethod || window.customPaymentMethods[0];
+			document.getElementById("fUnitPrice").value = (f.liters > 0 && f.total > 0) ? (f.total / f.liters).toFixed(2) : "";
+			document.getElementById("fIsFullCheckbox").checked = f.isFull !== undefined ? f.isFull : (f.fillLevel === 'full');
+			document.getElementById("fuelStartRoute").checked = false; document.getElementById("fuelRouteNameBox").classList.add("hidden");
+			document.getElementById("fDocId").value = f.docId || "";
+		if (f.docId) {
+			const uri = await getDocFromDB(f.docId);
+			if (uri && !uri.startsWith("data:application/pdf")) { document.getElementById("fDocThumbnail").src = uri; document.getElementById("fDocThumbnail").classList.remove("hidden"); }
+		document.getElementById("fDocPreviewBox").classList.remove("hidden"); document.getElementById("fDocPreviewBox").style.display="flex";
+		} else { document.getElementById("fDocPreviewBox").classList.add("hidden"); }
+  
+		document.getElementById("fuelModalTitle").innerText = "Yakıtı Düzenle"; 
+		document.getElementById("fuelAnomalyWarning").classList.add("hidden"); 
+		checkFuelIntervalLive(f.km); 
+		updateLpgVisibilityInApp();
 
-      // Canlı fiyat kutusunu ve dinleyicilerini düzenleme modunda da aktif et
-      document.getElementById("fStation").onchange = updateLivePriceInFuelModal;
-      document.getElementById("fFuelType").onchange = updateLivePriceInFuelModal;
-      updateLivePriceInFuelModal();
-
-      openModalDirectly("fuelModal");
-    }
+	// İstasyon ve yakıt türü değişirse canlı fiyatı takip etmesi için:
+		document.getElementById("fStation").onchange = updateLivePriceInFuelModal;
+		document.getElementById("fFuelType").onchange = updateLivePriceInFuelModal;
+		updateLivePriceInFuelModal();
+	
+	// Modalı aç:
+		openModalDirectly("fuelModal");
+}
 
     function saveFuel(e) {
       e.preventDefault();
